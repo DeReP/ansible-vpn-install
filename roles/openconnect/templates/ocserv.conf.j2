@@ -1,0 +1,50 @@
+auth = "plain[passwd=/etc/ocserv/ocpasswd]"
+
+tcp-port = {{ ocserv_port }}
+
+server-cert = /etc/letsencrypt/live/vpn.example.com/fullchain.pem
+server-key = /etc/letsencrypt/live/vpn.example.com/privkey.pem
+
+isolate-workers = true
+
+max-clients = {{ max_clients }}
+max-same-clients = {{ max_same_clients }}
+
+persistent-cookies = true
+keepalive = {{ keepalive }}
+dpd = {{ dpd }}
+mobile-dpd = {{ mobile_dpd }}
+try-mtu-discovery = {{ mtn_discovery }}
+
+auth-timeout = {{ auth_timeout }}
+min-reauth-time = {{ min_reauth_time }}
+max-ban-score = {{ max_ban_score }}
+ban-reset-time = {{ ban_reset_time }}
+cookie-timeout = {{ cookie_timeout }}
+cookie-rekey-time = {{ cookie_rekey_time }}
+cisco-client-compat = true
+deny-roaming = {{ roaming }}
+rekey-time = {{ rekey_time }}
+rekey-method = ssl
+use-occtl = true
+pid-file = /run/ocserv.pid
+device = ocvpn
+idle-timeout = {{ idle_timeout }} 
+mobile-idle-timeout = {{ mobile_idle_timeout }}
+ping-leases = false
+
+default-domain = {{ domain }}
+
+ipv4-network = {{ ip_v4_network }}
+
+tunnel-all-dns = true
+
+{% for item in dns_servers %}
+dns = {{ item }}
+{% endfor %}
+
+compression = true
+no-compress-limit = 256
+
+run-as-user = nobody
+run-as-group = daemon

@@ -1,0 +1,5 @@
+http_port localhost:{{ squid_port }}
+
+acl allowed_websites dstdomain {% for site in allowed_sites %}{{ site }} {% endfor %}
+http_access allow allowed_websites
+http_access deny all

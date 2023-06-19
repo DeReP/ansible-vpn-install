@@ -1,0 +1,20 @@
+ocserv_port : 8443
+max_clients: 5
+max_same_clients: 2
+keepalive: 30
+dpd: 240
+mobile_dpd: 1800
+mtn_discovery: "true"
+auth_timeout: 40
+min_reauth_time: 300
+max_ban_score: 50
+ban_reset_time: 300
+cookie_timeout: 300
+cookie_rekey_time: 15000
+roaming: "false"
+rekey_time: 3600
+idle_timeout: 1200
+mobile_idle_timeout: 1800
+ip_v4_network: "10.255.255.0/24"
+dns_servers: ["1.1.1.1", "8.8.8.8"]
+

@@ -1,0 +1,2 @@
+allowed_sites: [".intel.com", ".2ip.ru"]
+squid_port: 3128

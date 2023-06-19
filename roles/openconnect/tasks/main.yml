@@ -1,0 +1,53 @@
+- name: Install ocserv
+  apt:
+    package: ocserv
+
+- name: Generate the ocserv config
+  template:
+    src: ocserv.conf.j2
+    dest: "/etc/ocserv/ocserv.conf"
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Allow {{ ocserv_port }}
+  ufw:
+    rule: allow
+    proto: tcp
+    port: {{ ocserv_port }}
+  
+- name: Set ip forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: true
+
+- name: Firewall
+  block:
+  - name: Enable IP Masquerading
+    ufw:
+      policy: nat
+      state: enabled
+
+  - name: Set UFW forward policy to accept
+    ufw:
+      policy: accept
+      direction: forward
+
+  - name: Set bbr tcp algo
+    ansible.posix.sysctl:
+      name: net.ipv4.tcp_congestion_control
+      value: "bbr"
+      sysctl_set: true
+  
+  notify: Restart ufw
+
+- name: Enable ocserv
+  systemd:
+    daemon_reload: yes
+    name: ocserv.service
+    enabled: yes
+    state: restarted
+
+
+
