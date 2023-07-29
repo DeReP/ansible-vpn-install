@@ -1,6 +1,6 @@
 - name: Install squid
   apt:
-    package: squid
+    package: squid-
 
 - name: Generate squid config
   template:
@@ -10,3 +10,5 @@
     group: root
     mode: 0600
   notify: Restart squid
+
+  

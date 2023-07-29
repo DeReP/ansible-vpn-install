@@ -1,13 +1,14 @@
+- name: Include vault vars
+  include_vars:
+    file: 'vault/secrets.txt'
+
 - name: Ansible user creation
   user:
     name: ansible
     state: present
-
-- name: ansible user sudoers file
-  lineinfile:
-    dest: /etc/sudoers.d/ansible
-    line: "ansible ALL=(ALL) NOPASSWD: ALL"
-    create: true
+    groups: sudo
+    append: true
+    password: "{{ ansible_pass | password_hash('sha512') }}"
 
 - name: Add ansible public key to host
   authorized_key:
@@ -15,3 +16,23 @@
     key: "{{ ssh_public_key }}"
     state: present
 
+- name: Disable password authentication
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+  notify: Restart sshd
+
+
+- name: Allow SSH in UFW
+  ufw: 
+    rule: allow 
+    port: "{{ ansible_port | default('22') }}"
+    proto: tcp
+  notify: Restart ufw
+
+- name: Set firewall default policy
+  ufw: 
+    state: enabled
+    policy: reject
+  notify: Restart ufw

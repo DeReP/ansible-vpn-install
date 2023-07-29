@@ -1,23 +1,23 @@
-- name: Set desired port fact
-  set_fact:
-    configured_port: "{{ desired_ssh_port }}"
-
-- name: Check if we're using initial port
+- name: Check if we're using initial {{ initial_ssh_port }} port
   wait_for:
     port: "{{ initial_ssh_port }}"
     state: "started"
     host: "{{ inventory_hostname }}"
     connect_timeout: "5"
     timeout: "10"
-  delegate_to: "localhost"
   ignore_errors: true
+  ignore_unreachable: true
   register: default_ssh
 
-- name: Set inventory ansible_port to default
+- name: debug default ssh
+  debug:
+    msg: "{{ default_ssh }}"
+
+- name: Set inventory ansible_port to {{ initial_ssh_port }}
   set_fact:
     ansible_port: "{{ initial_ssh_port }}"
-  when: default_ssh is defined and
-        default_ssh.state == "started"
+  ignore_errors: true
+  when: default_ssh.unreacheble is undefined
   register: ssh_port_set
 
 - name: Check if we're using the desired ssh port
@@ -27,17 +27,15 @@
     host: "{{ inventory_hostname }}"
     connect_timeout: "5"
     timeout: "10"
-  delegate_to: "localhost"
   ignore_errors: true
+  ignore_unreachable: true
   register: configured_ssh
-  when: default_ssh is defined and
-        default_ssh.state is undefined
+  when: default_ssh.unreacheble is defined
 
 - name: Check is port configuration proper
   debug:
     msg: "SSH port is configured properly"
-  when: configured_ssh is defined and
-        configured_ssh.state is defined and
+  when: configured_ssh.state is defined and
         configured_ssh.state == "started"
   register: ssh_port_set
 
@@ -49,19 +47,19 @@
 - name: Allow {{ desired_ssh_port }}
   ufw:
     rule: allow
-    port: {{ desired_ssh_port }}
+    port: "{{ desired_ssh_port }}"
     proto: tcp
 
 - name: Setup {{ desired_ssh_port }} SSH port
   lineinfile:
     dest: "/etc/ssh/sshd_config"
     regexp: "^Port"
-    line: "Port {{ configured_port }}"
-  notify: "Restart sshd"
+    line: "Port {{ desired_ssh_port  }}"
+  notify: Restart sshd
 
 - name: Deny {{ initial_ssh_port }}
   ufw:
     rule: deny
-    port: {{ initial_ssh_port }}
+    port: "{{ initial_ssh_port }}"
     proto: tcp
   notify: Restart ufw
