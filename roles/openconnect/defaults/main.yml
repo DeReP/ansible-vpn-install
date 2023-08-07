@@ -17,4 +17,3 @@ idle_timeout: 1200
 mobile_idle_timeout: 1800
 ip_v4_network: "10.255.255.0/24"
 dns_servers: ["1.1.1.1", "8.8.8.8"]
-

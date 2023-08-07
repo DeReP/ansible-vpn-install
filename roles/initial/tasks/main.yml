@@ -1,7 +1,3 @@
-- name: Include vault vars
-  include_vars:
-    file: 'vault/secrets.txt'
-
 - name: Ansible user creation
   user:
     name: ansible

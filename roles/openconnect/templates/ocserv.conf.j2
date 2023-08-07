@@ -2,8 +2,8 @@ auth = "plain[passwd=/etc/ocserv/ocpasswd]"
 
 tcp-port = {{ ocserv_port }}
 
-server-cert = /etc/letsencrypt/live/vpn.example.com/fullchain.pem
-server-key = /etc/letsencrypt/live/vpn.example.com/privkey.pem
+server-cert = {{ server_cert }}
+server-key = {{ server_key }}
 
 isolate-workers = true
 
@@ -32,6 +32,7 @@ device = ocvpn
 idle-timeout = {{ idle_timeout }} 
 mobile-idle-timeout = {{ mobile_idle_timeout }}
 ping-leases = false
+socket-file = /run/ocserv.socket
 
 default-domain = {{ domain }}
 

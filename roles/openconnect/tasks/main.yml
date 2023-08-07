@@ -14,7 +14,7 @@
   ufw:
     rule: allow
     proto: tcp
-    port: {{ ocserv_port }}
+    port: "{{ ocserv_port }}"
   
 - name: Set ip forwarding
   ansible.posix.sysctl:
@@ -26,13 +26,14 @@
   block:
   - name: Enable IP Masquerading
     ufw:
-      policy: nat
-      state: enabled
+      default: allow
+      from_ip: "{{ ip_v4_network }}"
 
-  - name: Set UFW forward policy to accept
-    ufw:
-      policy: accept
-      direction: forward
+  #- name: Set UFW forward policy to accept
+  #  ufw:
+  #    policy: accept
+  #    direction: forward
+      
 
   - name: Set bbr tcp algo
     ansible.posix.sysctl:

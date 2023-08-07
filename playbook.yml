@@ -1,5 +1,13 @@
 ---
 - hosts: all
   gather_facts: no
+  vars_files:
+    - vault/vars.yml
+  pre_tasks:
+    - name: Gather facts from ALL hosts (regardless of limit or tags)
+      setup:
+  
   roles:
-    - role: change_ssh_port
+    #- initial
+    - certbot
+    - openconnect
