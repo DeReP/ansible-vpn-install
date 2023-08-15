@@ -1,4 +1,6 @@
 ---
+# to do: invent method of opening port for certificate challenge
+
 - import_tasks: include-vars.yml
 
 - import_tasks: setup-RedHat.yml

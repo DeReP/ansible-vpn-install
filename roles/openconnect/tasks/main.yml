@@ -22,18 +22,7 @@
     value: '1'
     sysctl_set: true
 
-- name: Firewall
-  block:
-  - name: Enable IP Masquerading
-    ufw:
-      default: allow
-      from_ip: "{{ ip_v4_network }}"
-
-  #- name: Set UFW forward policy to accept
-  #  ufw:
-  #    policy: accept
-  #    direction: forward
-      
+# to do:  add nat and forwarding through vpn subhnet fw rules    
 
   - name: Set bbr tcp algo
     ansible.posix.sysctl:
