@@ -7,3 +7,9 @@
   service:
     name: sshd
     state: restarted
+
+- name: Restart ocserv
+  service:
+    name: ocserv.service
+    state: restarted
+    

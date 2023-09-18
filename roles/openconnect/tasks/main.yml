@@ -1,6 +1,10 @@
-- name: Install ocserv
-  apt:
-    package: ocserv
+- name: Check your distro support
+  fail:
+    msg: your distro is unsupported
+  when: "{{ ansible_os_family not in supported_distro_family }}"
+
+- include_tasks: debian.yml
+  when: ansible_os_family == "Debian"
 
 - name: Generate the ocserv config
   template:
@@ -10,27 +14,71 @@
     group: root
     mode: 0600
 
-- name: Allow {{ ocserv_port }}
-  ufw:
-    rule: allow
-    proto: tcp
-    port: "{{ ocserv_port }}"
-  
 - name: Set ip forwarding
   ansible.posix.sysctl:
     name: net.ipv4.ip_forward
     value: '1'
     sysctl_set: true
 
-# to do:  add nat and forwarding through vpn subhnet fw rules    
-
-  - name: Set bbr tcp algo
-    ansible.posix.sysctl:
-      name: net.ipv4.tcp_congestion_control
-      value: "bbr"
-      sysctl_set: true
   
+- name: firewall  
+  block: 
+  
+ # - name: Add forwarding
+ #   blockinfile:
+ #     backup: yes
+ #     path: /etc/uwf/before.rules
+ #     insertbefore: "COMMIT"
+ #     block: |
+ #       # forwarding for ocserv
+ #       -A ufw-before-forward -s {{ ip_v4_network }} -j ACCEPT
+ #       -A ufw-before-forward -d {{ ip_v4_network }} -j ACCEPT
+  
+  - name: "Allow {{ ocserv_port }}"
+    ufw:
+      rule: allow
+      proto: tcp
+      port: "{{ ocserv_port }}"
+
+  - name: Allow forwarding for incoming ocserv traffic
+    ufw:
+      rule: allow
+      route: yes
+      src: "{{ ip_v4_network }}"
+  
+  - name: Allow forwarding for outcoming ocserv traffic
+    ufw:
+      rule: allow
+      route: yes
+      dest: "{{ ip_v4_network }}"
+
+  - name: Add nat for ocserv subnet
+    blockinfile:
+      backup: yes
+      path: /etc/ufw/before.rules
+      block: |
+        *nat
+        :POSTROUTING ACCEPT [0:0]
+        -A POSTROUTING -s {{ ip_v4_network }} -o {{ net_interface }} -j MASQUERADE
+        COMMIT
+
   notify: Restart ufw
+
+- name: Set bbr tcp algo
+  ansible.posix.sysctl:
+    name: net.ipv4.tcp_congestion_control
+    value: "bbr"
+    sysctl_set: true
+
+- name: Copy ocpasswd
+  copy:
+    src: "{{ ocpasswd_path }}"
+    dest: "/etc/ocserv/ocpasswd"
+    mode: 400
+    owner: root
+    group: root
+  notify: Restart ufw
+  
 
 - name: Enable ocserv
   systemd:
@@ -38,6 +86,3 @@
     name: ocserv.service
     enabled: yes
     state: restarted
-
-
-

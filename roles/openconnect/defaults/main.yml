@@ -16,4 +16,6 @@ rekey_time: 3600
 idle_timeout: 1200
 mobile_idle_timeout: 1800
 ip_v4_network: "10.255.255.0/24"
+net_interface: "eth0"
 dns_servers: ["1.1.1.1", "8.8.8.8"]
+supported_distro_family: ["Debian",]

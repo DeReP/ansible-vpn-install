@@ -19,6 +19,16 @@
     line: 'PasswordAuthentication no'
   notify: Restart sshd
 
+- name: Install ufw
+  package:
+    name: ufw
+
+
+- name: "Give to {{ ansible_user }} permissions to manage ufw"
+  lineinfile:
+    create: "true"
+    path: "/etc/sudoers.d/ansible"
+    line: "ansible ALL=NOPASSWD:/usr/sbin/ufw"
 
 - name: Allow SSH in UFW
   ufw: 

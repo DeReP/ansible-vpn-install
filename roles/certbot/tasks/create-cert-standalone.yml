@@ -15,28 +15,89 @@
     - pre
     - post
 
-- name: Create pre hook to stop services.
-  template:
-    src: stop_services.j2
-    dest: /etc/letsencrypt/renewal-hooks/pre/stop_services
-    owner: root
-    group: root
-    mode: 0750
+- name: Preparations if challenge ports is used by services
+  block:
+  - name: Create pre hook to stop services.
+    template:
+      src: stop_services.j2
+      dest: /etc/letsencrypt/renewal-hooks/pre/stop_services
+      owner: root
+      group: root
+      mode: 0750
+
+  - name: Create post hook to start services.
+    template:
+      src: start_services.j2
+      dest: /etc/letsencrypt/renewal-hooks/post/start_services
+      owner: root
+      group: root
+      mode: 0750
+  
   when:
     - certbot_create_standalone_stop_services is defined
     - certbot_create_standalone_stop_services
 
-- name: Create post hook to start services.
-  template:
-    src: start_services.j2
-    dest: /etc/letsencrypt/renewal-hooks/post/start_services
-    owner: root
-    group: root
-    mode: 0750
+
+- name: Preparations if challenge ports is unused
+  block:
+
+  - name: Create pre hook to open ports if there is no services on challenge ports.
+    copy:
+        src: ufw-open-challenge-ports.sh
+        dest: /etc/letsencrypt/renewal-hooks/pre/open_ports
+        owner: root
+        group: root
+        mode: 0750
+
+  - name: Create post hook to close ports if there is no services on challenge ports.
+    copy:
+      src: ufw-close-challenge-ports.sh
+      dest: /etc/letsencrypt/renewal-hooks/post/close_ports
+      owner: root
+      group: root
+      mode: 0750     
   when:
-    - certbot_create_standalone_stop_services is defined
-    - certbot_create_standalone_stop_services
+    - certbot_create_standalone_stop_services is undefined or certbot_create_standalone_stop_services == []
+    - manage_fw_util == "ufw"
+
+- name: Allow challenge ports
+  block: 
+  - name: "Allow 80 for challenge"
+    ufw:
+      rule: allow
+      proto: tcp
+      port: 80
+    
+- name: "Allow 443 for challenge"
+  ufw:
+    rule: allow
+    proto: tcp
+    port: 443
+
+  when:
+    - certbot_create_standalone_stop_services is undefined or certbot_create_standalone_stop_services == []
+    - manage_fw_util == "ufw"
+
 
 - name: Generate new certificate if one doesn't exist.
   command: "{{ certbot_create_command }}"
   when: not letsencrypt_cert.stat.exists
+
+
+- name: Deny challenge ports after successfull challenge
+  block:
+  - name: "Deny 80 after challenge"
+    ufw:
+      rule: deny
+      proto: tcp
+      port: 80
+
+  - name: "Deny 443 after challenge"
+    ufw:
+      rule: deny
+      proto: tcp
+      port: 443
+
+  when:
+    - certbot_create_standalone_stop_services is undefined or certbot_create_standalone_stop_services == []
+    - manage_fw_util == "ufw"

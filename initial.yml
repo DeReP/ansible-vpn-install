@@ -10,5 +10,4 @@
       setup:
   
   roles:
-    - certbot
-    - openconnect
+    - initial
